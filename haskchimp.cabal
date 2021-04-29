@@ -21,6 +21,15 @@ source-repository head
 
 common common-options
   build-depends:       base ^>= 4.13.0.0
+                     , aeson
+                     , bytestring
+                     , http-conduit
+                     , mtl
+                     , network
+                     , safe-exceptions
+                     , text
+                     , time
+                     , email-validate
   
   ghc-options:         -Wall
                        -Wcompat
@@ -43,6 +52,7 @@ library
   import:              common-options
   hs-source-dirs:      src
   exposed-modules:     Haskchimp
+                     , Haskchimp.Types
 
 test-suite haskchimp-test
   import:              common-options
