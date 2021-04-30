@@ -13,21 +13,26 @@ See README for more info
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE LambdaCase                 #-}
 {-# LANGUAGE OverloadedStrings          #-}
+{-# LANGUAGE TemplateHaskell            #-}
 module Haskchimp.Types where
 
 import           Data.Aeson
-import           Data.Aeson.Types    (parseFail)
-import           Data.Text           hiding (map)
-import           GHC.Generics        (Generic)
-import           Text.Email.Parser   (EmailAddress)
-import           Text.Email.Validate (emailAddress)
+import           Data.Aeson.TH
+import           Data.Aeson.Types      (parseFail)
 import qualified Data.ByteString.Char8 as B8
+import qualified Data.HashMap.Strict   as H
+import           Data.Text             hiding (map, drop)
+import           GHC.Generics          (Generic)
+import           Text.Email.Parser     (EmailAddress, toByteString)
+import           Text.Email.Validate   (emailAddress)
+import Debug.Trace
 
 -- | A couple of orphan instances to simplify json parsing/encoding
 instance ToJSON EmailAddress where
-  toJSON email = toJSON $ show email
+  toJSON email = String $ pack $ B8.unpack $ toByteString email
 instance FromJSON EmailAddress where
-  parseJSON = withText "EmailAddress" $ \t ->
+  parseJSON = withText "EmailAddress" $ \t -> do
+    traceShowM t
     case emailAddress $ B8.pack $ unpack t of
       Nothing -> parseFail $ "Invalid email address: " <> unpack t
       Just e  -> pure e
@@ -42,6 +47,8 @@ newtype ListId = ListId Text
   deriving newtype Eq
   deriving anyclass (FromJSON, ToJSON)
 
+type MergeVars = H.HashMap Text Text
+
 -- | A name for an Event to be sent to Mailchimp
 newtype EventName = EventName Text
   deriving stock (Show, Generic)
@@ -52,12 +59,15 @@ newtype EventName = EventName Text
 
 -- | Mailchimp's json error model
 data MError =
-  MError { status :: Int
-         , title  :: String
-         , detail :: String
+  MError { _status     :: Int
+         , _title      :: Text
+         , _type       :: Maybe Text
+         , _detail     :: Text
+         , _instance :: Text
          }
   deriving stock (Eq, Show, Generic)
-  deriving anyclass (FromJSON)
+$(deriveJSON (defaultOptions { fieldLabelModifier = drop 1 }) ''MError)
+
 
 -- | Mailchimp returning a failure or a success, both in json format.
 data MResponse a = MFail MError | MSuccess a
@@ -139,7 +149,7 @@ data MemberPayload =
   MemberPayload { email_address :: EmailAddress
                 , status        :: ListMemberStatus
                 , email_type    :: EmailType
-                -- , merge_fields  :: Value --TODO maybe this can be a map?
+                , merge_fields  :: MergeVars
                 , vip           :: Bool
                 }
   deriving stock (Eq, Show, Generic)
@@ -161,8 +171,8 @@ data ListMemberResult =
                    , unique_email_id :: Text
                    , email_type      :: EmailType
                    , status          :: ListMemberStatus
-                   -- , merge_fields :: Value -- TODO maybe this can be a map?
-                   , vip             :: Bool
+                   , merge_fields    :: MergeVars
+                       , vip         :: Bool
                    , list_id         :: ListId
                    -- more fields we will not need
                    }
@@ -181,9 +191,9 @@ instance FromJSON ListMemberErrorType where
 
 -- | The possible error coming back from a list batch update.
 data ListMemberError =
-  ListMemberError { email_address :: EmailAddress
-                  , error :: Text
-                  , error_code :: ListMemberErrorType
+  ListMemberError { email_address :: Text -- TODO this email has escaped quotes
+                  , error         :: Text
+                  , error_code    :: ListMemberErrorType
                   }
   deriving stock (Eq, Show, Generic)
   deriving anyclass FromJSON

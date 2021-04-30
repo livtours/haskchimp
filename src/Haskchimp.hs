@@ -34,6 +34,12 @@ campaignsUrl dc = rootUrl dc <> "campaigns/"
 listsUrl :: String -> String
 listsUrl dc = rootUrl dc <> "lists/"
 
+addMemberToListUrl :: String -> ListId -> String
+addMemberToListUrl dc (ListId l) = rootUrl dc <> "lists/" <> unpack l <> "/members"
+
+listBatchUpdateUrl :: String -> ListId -> String
+listBatchUpdateUrl dc (ListId l) = rootUrl dc <> "lists/" <> unpack l
+
 journeyTriggerUrl :: String -> JourneyId -> StepId -> String
 journeyTriggerUrl dc (JourneyId j) (StepId s) =
   rootUrl dc <> "/customer-journeys/journeys/" <> show j <> "/steps/" <> show s <> "/actions/trigger"
@@ -70,6 +76,7 @@ post_ url body = liftIO $ do
               $ setRequestBodyJSON body
               request'
   res <- httpLBS request
+  traceShowM $ encode body
   pure $ handleResponse res
 
 -- EXPORTED METHODS. TODO I'm hardcoding the "us10" datacenter for now
@@ -78,7 +85,16 @@ post_ url body = liftIO $ do
 getLists :: MonadIO m => m (MResult Lists)
 getLists = get_ (listsUrl "us10")
 
--- TODO add user to list
+addMemberToList :: MonadIO m => ListId -> MemberPayload -> m (MResult ListMemberResult)
+addMemberToList listId member = do
+  let url = addMemberToListUrl "us10" listId
+  post_ url member
+
+-- TODO can't make it work
+listBatchUpdate :: MonadIO m => ListId -> [MemberPayload] -> m (MResult ListBatchUpdateResponse)
+listBatchUpdate listId members = do
+  let url = listBatchUpdateUrl "us10" listId
+  post_ url $ ListBatchUpdatePayload members False
 
 -- | Triggers a journey endpoint sending the email
 journeyTrigger :: MonadIO m => JourneyId -> StepId -> EmailAddress -> m (MResult ())
