@@ -30,6 +30,7 @@ common common-options
                      , text
                      , time
                      , email-validate
+                     , pureMD5
   
   ghc-options:         -Wall
                        -Wcompat
