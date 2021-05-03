@@ -213,20 +213,19 @@ data ListBatchUpdateResponse =
 -- JOURNEYS
 
 -- | The data sent in a journey trigger
-data JourneyTriggerPayload =
+newtype JourneyTriggerPayload =
   JourneyTriggerPayload { email_address :: EmailAddress }
-  deriving stock (Eq, Show, Generic)
+  deriving stock (Show, Generic)
+  deriving newtype Eq
+  deriving anyclass ToJSON
 
--- | TODO doing a test with foo to see if it's used. We can derive it normally afterwards
-instance ToJSON JourneyTriggerPayload where
-  toJSON (JourneyTriggerPayload e) = object [ "email_address" .= show e, "foo" .= ("test test" :: String) ]
 
  -- EVENTS
 
 -- | The data sent in an event trigger.
 data EventPayload a =
   EventPayload { name       :: EventName
-               , properties :: Maybe a
+               , properties :: MergeVars
                -- , is_syncing :: Bool
                -- , occurred_at :: ISO 8601 date
                }
