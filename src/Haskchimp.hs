@@ -11,7 +11,8 @@ module Haskchimp
   ( getLists
   , getListMergeFields
   , addUpdateMemberToList
-  , listBatchUpdate
+  , addMemberToList
+  , getListMember
   , journeyTrigger
   , addEvent
   , noMergeVars
@@ -36,9 +37,6 @@ import qualified Data.HashMap.Strict   as H
 rootUrl :: String -> String
 rootUrl dc = "https://" <> dc <> ".api.mailchimp.com/3.0/"
 
--- campaignsUrl :: String -> String
--- campaignsUrl dc = rootUrl dc <> "campaigns/"
-
 listsUrl :: String -> String
 listsUrl dc = rootUrl dc <> "lists/"
 
@@ -48,8 +46,8 @@ listMergeFieldsUrl dc (ListId l) = rootUrl dc <> "lists/" <> unpack l <> "/merge
 addMemberToListUrl :: String -> ListId -> String
 addMemberToListUrl dc (ListId l) = rootUrl dc <> "lists/" <> unpack l <> "/members"
 
-addUpdateMemberToListUrl :: String -> ListId -> EmailAddress -> String
-addUpdateMemberToListUrl dc (ListId l) emailAddress =
+listMemberUrl :: String -> ListId -> EmailAddress -> String
+listMemberUrl dc (ListId l) emailAddress =
   let hashedMail = show $ md5 $ L8.fromStrict $ toByteString emailAddress
   in rootUrl dc <> "lists/" <> unpack l <> "/members/" <> hashedMail
 
@@ -132,18 +130,29 @@ getListMergeFields :: MonadIO m => ListId -> m (MResult Object)
 getListMergeFields listId = do
   get_ $ listMergeFieldsUrl "us10" listId <> "/3"
 
+getListMember :: MonadIO m => ListId -> EmailAddress -> m (MResult ListMemberResult)
+getListMember listId email = do
+  let url = listMemberUrl "us10" listId email
+  get_ url
+
 -- | Adds or update a member to a mailchimp list.
 -- | The required merge fields has to be passed or the request will fail.
 addUpdateMemberToList :: MonadIO m => ListId -> MemberPayload -> m (MResult ListMemberResult)
 addUpdateMemberToList listId member@(MemberPayload email _ _ _ _) = do
-  let url = addUpdateMemberToListUrl "us10" listId email
+  let url = listMemberUrl "us10" listId email
   put_ url member
 
+-- | Adds a member to a mailchimp list.
+addMemberToList :: MonadIO m => ListId -> MemberPayload -> m (MResult ListMemberResult)
+addMemberToList listId member = do
+  let url = addMemberToListUrl "us10" listId
+  post_ url member
+
 -- | Sends a batch request, similar to addMemberToList
-listBatchUpdate :: MonadIO m => ListId -> [MemberPayload] -> m (MResult ListBatchUpdateResponse)
-listBatchUpdate listId membs = do
-  let url = listBatchUpdateUrl "us10" listId
-  post_ url $ ListBatchUpdatePayload membs False
+-- listBatchUpdate :: MonadIO m => ListId -> [MemberPayload] -> m (MResult ListBatchUpdateResponse)
+-- listBatchUpdate listId membs = do
+--   let url = listBatchUpdateUrl "us10" listId
+--   post_ url $ ListBatchUpdatePayload membs False
 
 -- | Triggers a journey endpoint sending the email
 journeyTrigger :: MonadIO m => JourneyId -> StepId -> EmailAddress -> m (MResult ())

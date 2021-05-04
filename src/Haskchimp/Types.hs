@@ -21,11 +21,11 @@ import           Data.Aeson.TH
 import           Data.Aeson.Types      (parseFail)
 import qualified Data.ByteString.Char8 as B8
 import qualified Data.HashMap.Strict   as H
-import           Data.Text             hiding (map, drop)
+import           Data.Text             hiding (drop, map)
+import           Debug.Trace
 import           GHC.Generics          (Generic)
 import           Text.Email.Parser     (EmailAddress, toByteString)
 import           Text.Email.Validate   (emailAddress)
-import Debug.Trace
 
 -- | A couple of orphan instances to simplify json parsing/encoding
 instance ToJSON EmailAddress where
@@ -59,10 +59,10 @@ newtype EventName = EventName Text
 
 -- | Mailchimp's json error model
 data MError =
-  MError { _status     :: Int
-         , _title      :: Text
-         , _type       :: Maybe Text
-         , _detail     :: Text
+  MError { _status   :: Int
+         , _title    :: Text
+         , _type     :: Maybe Text
+         , _detail   :: Text
          , _instance :: Text
          }
   deriving stock (Eq, Show, Generic)
@@ -144,7 +144,18 @@ instance FromJSON ListMemberStatus where
       "pending" -> pure ListMemberStatusPending
       t -> parseFail $ "Invalid status: " <> unpack t
 
--- | A list member info used in batch lists update requests.
+-- | payload used by the addUpdateMember function
+data MemberUpdatePayload =
+  MemberUploadPayload { email_address :: EmailAddress
+                      , status_if_new :: ListMemberStatus
+                      , email_type    :: EmailType
+                      , merge_fields  :: MergeVars
+                      , vip           :: Bool
+                      }
+  deriving stock (Eq, Show, Generic)
+  deriving anyclass ToJSON
+
+-- | payload used by the addMember function
 data MemberPayload =
   MemberPayload { email_address :: EmailAddress
                 , status        :: ListMemberStatus
@@ -154,6 +165,7 @@ data MemberPayload =
                 }
   deriving stock (Eq, Show, Generic)
   deriving anyclass ToJSON
+
 
 -- | The data sent in batch update requests.
 data ListBatchUpdatePayload =
@@ -172,7 +184,7 @@ data ListMemberResult =
                    , email_type      :: EmailType
                    , status          :: ListMemberStatus
                    , merge_fields    :: MergeVars
-                       , vip         :: Bool
+                   , vip             :: Bool
                    , list_id         :: ListId
                    -- more fields we will not need
                    }

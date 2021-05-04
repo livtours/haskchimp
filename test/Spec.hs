@@ -48,7 +48,7 @@ main = do
 
   -- res <- listBatchUpdate bfridaylist members
 
-  res <- getListMergeFields travelagent2
+  -- res <- getListMergeFields travelagent2
   -- traceShowM res
 
   -- res <- addUpdateMemberToList travelagent2 memberh
