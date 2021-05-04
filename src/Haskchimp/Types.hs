@@ -14,7 +14,26 @@ See README for more info
 {-# LANGUAGE LambdaCase                 #-}
 {-# LANGUAGE OverloadedStrings          #-}
 {-# LANGUAGE TemplateHaskell            #-}
-module Haskchimp.Types where
+module Haskchimp.Types
+  ( JourneyId(..)
+  , StepId(..)
+  , ListId(..)
+  , EventName(..)
+  , MergeVars
+  , MError(..)
+  , MResult(..)
+  , ListMemberResult(..)
+  , List(..)
+  , Lists(..)
+  , EmailType(..)
+  , ListMemberStatus(..)
+  , ListMemberError(..)
+  , ListMemberErrorType(..)
+  , MemberPayload(..)
+  , EventPayload(..)
+  , JourneyTriggerPayload(..)
+  )
+  where
 
 import           Data.Aeson
 import           Data.Aeson.TH
@@ -70,14 +89,15 @@ $(deriveJSON (defaultOptions { fieldLabelModifier = drop 1 }) ''MError)
 
 
 -- | Mailchimp returning a failure or a success, both in json format.
-data MResponse a = MFail MError | MSuccess a
+-- The string is the json parse error.
+data MResult a = MFail (Either String MError) | MSuccess a
   deriving stock (Show, Eq)
 
-instance Functor MResponse where
+instance Functor MResult where
   fmap f (MSuccess a) = MSuccess $ f a
   fmap _ (MFail e)    = MFail e
 
-instance Applicative MResponse where
+instance Applicative MResult where
   pure = MSuccess
   (MSuccess ab) <*> (MSuccess a) = MSuccess (ab a)
   MFail e <*> _ = MFail e
@@ -85,7 +105,7 @@ instance Applicative MResponse where
 
 -- | We might fail parsing the json.
 -- | TODO maybe we can conflate all the errors
-type MResult a = Either String (MResponse a)
+-- type MResult a = Either String (MResponse a)
 
 -- LISTS
 

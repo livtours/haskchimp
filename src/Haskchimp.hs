@@ -27,7 +27,6 @@ import           Data.ByteString.Char8      (pack)
 import qualified Data.ByteString.Lazy.Char8 as L8
 import           Data.Digest.Pure.MD5
 import           Data.Text                  (unpack)
-import           Debug.Trace
 import           Haskchimp.Types
 import           Network.HTTP.Simple
 import           Text.Email.Parser          (EmailAddress, toByteString)
@@ -51,8 +50,8 @@ listMemberUrl dc (ListId l) emailAddress =
   let hashedMail = show $ md5 $ L8.fromStrict $ toByteString emailAddress
   in rootUrl dc <> "lists/" <> unpack l <> "/members/" <> hashedMail
 
-listBatchUpdateUrl :: String -> ListId -> String
-listBatchUpdateUrl dc (ListId l) = rootUrl dc <> "lists/" <> unpack l
+-- listBatchUpdateUrl :: String -> ListId -> String
+-- listBatchUpdateUrl dc (ListId l) = rootUrl dc <> "lists/" <> unpack l
 
 journeyTriggerUrl :: String -> JourneyId -> StepId -> String
 journeyTriggerUrl dc (JourneyId j) (StepId s) =
@@ -68,9 +67,12 @@ mailchimpkey :: String
 mailchimpkey = "87c4a1f0cf1a91107098c27d073dc790-us10"
 
 handleResponse :: FromJSON a => Response L8.ByteString -> MResult a
-handleResponse r = if getResponseStatusCode r >= 400
-                   then MFail <$> eitherDecode (getResponseBody r)
-                   else MSuccess <$> eitherDecode (getResponseBody r)
+handleResponse r =
+  if getResponseStatusCode r >= 400
+  then MFail $ eitherDecode $ getResponseBody r
+  else case eitherDecode (getResponseBody r) of
+    Left s -> MFail $ Left s
+    Right b -> MSuccess b
 
 -- | Helper method for get requests
 get_ :: MonadIO m => FromJSON a => String -> m (MResult a)
@@ -103,8 +105,8 @@ postUnit_ :: MonadIO m => ToJSON a => String -> a -> m (MResult ())
 postUnit_ url body = liftIO $ do
   res <- postHelper_ url body
   if getResponseStatusCode res >= 400
-  then pure $ MFail <$> eitherDecode (getResponseBody res)
-  else pure $ Right $ MSuccess ()
+  then pure $ MFail $ eitherDecode (getResponseBody res)
+  else pure $ MSuccess ()
 
 
 put_ :: MonadIO m => FromJSON b => ToJSON a => String -> a -> m (MResult b)
