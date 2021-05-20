@@ -17,6 +17,8 @@ See README for more info
 module Haskchimp.Types
   ( JourneyId(..)
   , StepId(..)
+  , MailChimpApiKey(..)
+  , DC(..)
   , ListId(..)
   , EventName(..)
   , MergeVars
@@ -55,6 +57,11 @@ instance FromJSON EmailAddress where
     case emailAddress $ B8.pack $ unpack t of
       Nothing -> parseFail $ "Invalid email address: " <> unpack t
       Just e  -> pure e
+
+-- | The api key
+newtype MailChimpApiKey = MailChimpApiKey String
+-- | The data center
+newtype DC = DC String
 
 -- | A Mailchimp Journey ID
 newtype JourneyId = JourneyId Int

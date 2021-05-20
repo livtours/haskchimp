@@ -13,6 +13,13 @@ import           Data.Aeson
 import           Data.Aeson.Types    (parseFail)
 import qualified Data.HashMap.Strict as H
 
+-- | Temporary test key to try stuff out
+mailchimpkey :: MailChimpApiKey
+mailchimpkey = MailChimpApiKey "87c4a1f0cf1a91107098c27d073dc790-us10"
+
+us10 :: DC
+us10 = DC "us10"
+
 prbloggers = ListId "4252578848"
 travelagent2 = ListId "3efe0bde3c"
 member =
@@ -43,8 +50,8 @@ memberh =
 
 main :: IO ()
 main = do
-  -- lists <- getLists
-  -- traceShowM lists
+  lists <- getLists mailchimpkey us10
+  traceShowM lists
 
   -- res <- listBatchUpdate bfridaylist members
 
