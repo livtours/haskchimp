@@ -17,8 +17,8 @@ See README for more info
 module Haskchimp.Types
   ( JourneyId(..)
   , StepId(..)
-  , MailChimpApiKey(..)
-  , DC(..)
+  , MailchimpApiKey(..)
+  , MailchimpDC(..)
   , ListId(..)
   , EventName(..)
   , MergeVars
@@ -59,9 +59,9 @@ instance FromJSON EmailAddress where
       Just e  -> pure e
 
 -- | The api key
-newtype MailChimpApiKey = MailChimpApiKey String
+newtype MailchimpApiKey = MailchimpApiKey String
 -- | The data center
-newtype DC = DC String
+newtype MailchimpDC = MailchimpDC String
 
 -- | A Mailchimp Journey ID
 newtype JourneyId = JourneyId Int

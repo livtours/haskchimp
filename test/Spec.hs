@@ -14,14 +14,14 @@ import           Data.Aeson.Types    (parseFail)
 import qualified Data.HashMap.Strict as H
 
 -- | Temporary test key to try stuff out
-mailchimpkey :: MailChimpApiKey
-mailchimpkey = MailChimpApiKey "87c4a1f0cf1a91107098c27d073dc790-us10"
+mailchimpkey :: MailchimpApiKey
+mailchimpkey = MailchimpApiKey "87c4a1f0cf1a91107098c27d073dc790-us10"
 
-us10 :: DC
-us10 = DC "us10"
+us10 :: MailchimpDC
+us10 = MailchimpDC "us10"
 
-prbloggers = ListId "4252578848"
-travelagent2 = ListId "3efe0bde3c"
+testlist = ListId "fc34064bdc"
+
 member =
          MemberPayload
           (unsafeEmailAddress "branch13" "gmail.com")
@@ -34,7 +34,7 @@ member =
           False
 
 members = [member]
-hotmail = unsafeEmailAddress "budgnopjrywqfokpld" "miucce.com"
+hotmail = unsafeEmailAddress "branch13" "gmail.com"
 
 memberh =
          MemberPayload
@@ -50,18 +50,18 @@ memberh =
 
 main :: IO ()
 main = do
-  lists <- getLists mailchimpkey us10
-  traceShowM lists
+  -- lists <- getLists mailchimpkey us10
+  -- traceShowM lists
 
   -- res <- listBatchUpdate bfridaylist members
 
-  -- res <- getListMergeFields travelagent2
+  -- res <- getListMergeFields mailchimpkey us10 testlist
   -- traceShowM res
 
-  -- res <- addUpdateMemberToList travelagent2 memberh
-  -- traceShowM res
+  res <- addUpdateMemberToList mailchimpkey us10 testlist memberh
+  traceShowM res
 
-  -- v <- journeyTrigger (JourneyId 2653) (StepId 14013) (unsafeEmailAddress "branch13" "gmail.com")
+  -- v <- journeyTrigger mailchimpkey us10 (JourneyId 3125) (StepId 17225) (unsafeEmailAddress "branch13" "gmail.com")
   -- traceShowM v
   -- res2 <- addEvent travelagent2 hotmail (EventName "apitest")
   --         (H.fromList [ ("PHONE", "12344456") ])
