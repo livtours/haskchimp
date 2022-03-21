@@ -50,7 +50,7 @@ memberh =
 
 main :: IO ()
 main = do
-  -- lists <- getLists mailchimpkey us10
+  lists <- getLists mailchimpkey us10
   -- traceShowM lists
 
   -- res <- listBatchUpdate bfridaylist members
@@ -58,8 +58,8 @@ main = do
   -- res <- getListMergeFields mailchimpkey us10 testlist
   -- traceShowM res
 
-  res <- addUpdateMemberToList mailchimpkey us10 testlist memberh
-  traceShowM res
+  -- res <- addUpdateMemberToList mailchimpkey us10 testlist memberh
+  -- traceShowM res
 
   -- v <- journeyTrigger mailchimpkey us10 (JourneyId 3125) (StepId 17225) (unsafeEmailAddress "branch13" "gmail.com")
   -- traceShowM v
