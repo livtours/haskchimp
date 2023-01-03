@@ -20,7 +20,7 @@ source-repository head
   location:            https://github.com/dariooddenino/haskchimp.git
 
 common common-options
-  build-depends:       base ^>= 4.15.0.0
+  build-depends:       base ^>= 4.16.4.0
                      , aeson
                      , bytestring
                      , http-conduit
